@@ -1,29 +1,32 @@
 mod loader;
 use loader::*;
-use capstone::prelude::*; 
+use capstone::prelude::*;
 
-fn disassemble(path: &str) {
+pub fn disassemble(path: &str) -> Vec<String> {
     let bin = match load_binary(path) {
         Ok(binary) => binary,
         Err(_) => panic!("error loading binary"), //make sure that loading process is ok
     };
 
+    let instruct = disasm(&bin);
+    instruct
+}
 
-fn disasm(binary: &Binary) -> Vec<String> {e
+fn disasm(binary: &Binary) -> Vec<String> {
     let text = binary.sections.iter()
         .find(|s| matches!(s.sections_type, SectionType::Code))
         .expect("failed to find anything to disassemble");
-    
+
     let cs = Capstone::new()
         .x86()
         .mode(arch::x86::ArchMode::Mode64)
         .syntax(arch::x86::ArchSyntax::Intel)
         .build()
         .expect("failed with disassembly engine");
-    
+
     let insns = cs.disasm_all(&text.bytes, text.address)
         .expect("disassembly failure");
-    
+
     let mut instruct: Vec<String> = Vec::new();
 
     for insn in insns.iter() {
@@ -36,9 +39,9 @@ fn disasm(binary: &Binary) -> Vec<String> {e
             } else {
                 line.push_str("   ");
             }
-        }    
+        }
 
-        let details = format!("{:<12} {}", 
+        let details = format!("{:<12} {}",
             insn.mnemonic().unwrap_or(""),
             insn.op_str().unwrap_or("")
         );
