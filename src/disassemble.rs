@@ -1,9 +1,8 @@
-mod loader;
-use loader::*;
+use crate::loader::{*};
 use capstone::prelude::*;
 
 pub fn disassemble(path: &str) -> Vec<String> {
-    let bin = match load_binary(path) {
+    let bin = match crate::loader::load_binary(path) {
         Ok(binary) => binary,
         Err(_) => panic!("error loading binary"), //make sure that loading process is ok
     };
@@ -14,7 +13,7 @@ pub fn disassemble(path: &str) -> Vec<String> {
 
 fn disasm(binary: &Binary) -> Vec<String> {
     let text = binary.sections.iter()
-        .find(|s| matches!(s.sections_type, SectionType::Code))
+        .find(|s| matches!(s.section_type, SectionType::Code))
         .expect("failed to find anything to disassemble");
 
     let cs = Capstone::new()
